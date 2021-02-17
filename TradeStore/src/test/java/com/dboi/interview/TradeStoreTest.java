@@ -5,7 +5,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.dboi.interview.exception.LowerVersionException;
 import com.dboi.interview.model.Trade;
@@ -14,6 +16,8 @@ import com.dboi.interview.store.TradeStore;
 import com.dboi.interview.trade.expire.TradeExpireUpdater;
 import com.dboi.interview.validation.TradeValidator;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
 
 public class TradeStoreTest {
 
@@ -22,6 +26,9 @@ public class TradeStoreTest {
 	private static Trade trade2;
 	private static Trade trade3;
 	private static Trade trade4;
+
+	@Rule
+	public ExpectedException thrown = ExpectedException.none();
 
 	@BeforeClass
 	public static void setup() throws ParseException {
@@ -76,66 +83,66 @@ public class TradeStoreTest {
 		trade1.setExpired('N');
 	}
 
-	
 	@Test
 	public void doValidateTest1() throws ParseException {
 		TradeValidator tv = new TradeValidator();
 		boolean status1 = tv.validateTrade(store, trade1);
 		assertEquals(true, status1);
-		
+
 	}
-	
+
 	@Test
 	public void doPersistTest1() throws ParseException, LowerVersionException {
 		TradePersister persister = new TradePersister();
 		boolean status = persister.doPersist(store, trade1);
 		assertEquals(false, status);
 	}
-		
+
 	@Test
 	public void doValidateTest2() throws ParseException {
 		TradeValidator tv = new TradeValidator();
 		boolean status2 = tv.validateTrade(store, trade2);
 		assertEquals(true, status2);
 	}
-	
+
 	@Test
 	public void doPersistTest2() throws ParseException, LowerVersionException {
 		TradePersister persister = new TradePersister();
 		boolean status = persister.doPersist(store, trade2);
 		assertEquals(true, status);
 	}
-	
+
 	@Test
 	public void doValidateTest3() throws ParseException {
 		TradeValidator tv = new TradeValidator();
 		boolean status3 = tv.validateTrade(store, trade3);
 		assertEquals(true, status3);
-		
+
 	}
-	
+
 	@Test
-	public void doPersistTest3() throws ParseException, LowerVersionException {
+	public void doPersistTest3() throws Exception {
 		TradePersister persister = new TradePersister();
-		boolean status = persister.doPersist(store, trade3);
-		assertEquals(false, status);
+		thrown.expect(LowerVersionException.class);
+		thrown.expectMessage("Lower version Trade found, Trade Id " + trade3.getTradeId());
+		persister.doPersist(store, trade3);
 	}
-	
+
 	@Test
 	public void doValidateTest4() throws ParseException {
 		TradeValidator tv = new TradeValidator();
 		boolean status4 = tv.validateTrade(store, trade4);
 		assertEquals(true, status4);
-		
+
 	}
-	
+
 	@Test
 	public void doPersistTest4() throws ParseException, LowerVersionException {
 		TradePersister persister = new TradePersister();
 		boolean status = persister.doPersist(store, trade4);
 		assertEquals(false, status);
 	}
-	
+
 	@Test
 	public void doTradeExpiryUpdaterTest() throws ParseException {
 		TradeExpireUpdater updater = new TradeExpireUpdater();
